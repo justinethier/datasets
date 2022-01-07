@@ -6,7 +6,12 @@ import (
   "log"
   "os"
   "strings"
+  "strconv"
+  "github.com/justinethier/keyva/lsm"
+  "encoding/json"
 )
+
+var tbl = lsm.New("db", 5000)
 
 func ReadFile() {
   file, err := os.Open("sykesville.txt")
@@ -30,11 +35,14 @@ func ReadFile() {
 
 func ParseLine(line string) {
   cols := strings.Fields(line)
-  fmt.Println( len(cols) )
-  fmt.Println(cols[0]) // station
-  fmt.Println(cols[1]) // name
-  fmt.Println(cols[9]) // date
-  fmt.Println(cols[10]) // precip
+  key := cols[0] + "/" + cols[1] + "/" + cols[9] // Station / Name / Date
+  snowlvl, _ := strconv.Atoi(cols[11])
+  if snowlvl < 0 {
+    snowlvl = 0
+  }
+  fmt.Println(key + " - " + strconv.Itoa(snowlvl))
+  b, _ := json.Marshal(snowlvl)
+  tbl.Set(key, b)
 }
 
 func main() {
